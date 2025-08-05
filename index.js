@@ -54,7 +54,7 @@ const swaggerOptions = {
       version: "1.0.0",
       description: "API documentation using Swagger",
     },
-    servers: [{ url: "https://risola-backend.onrender.com" }],
+    servers: [{ url: "https://mexback.onrender.com" }],
   },
   apis: ["./routes/*.js"],
 };
@@ -74,4 +74,5 @@ app.use("/api/userKvitansiya", usersKvitansiyaRoute);
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
+
 });

@@ -2,8 +2,8 @@ const express = require("express");
 const { connect } = require("mongoose");
 const cors = require("cors");
 require("dotenv").config();
-const userRoute = require("./routes/mex.route");
-const usersKvitansiyaRoute = require("./routes/room.route");
+const mexRoute = require("./routes/mex.route");
+const roomRoute = require("./routes/room.route");
 const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 
@@ -67,12 +67,11 @@ app.get("/", (req, res) => {
 });
 
 // ✅ API routes
-app.use("/api/users", userRoute);
-app.use("/api/userKvitansiya", usersKvitansiyaRoute);
+app.use("/api/guests", mexRoute);
+app.use("/api/rooms", roomRoute);
 
 // ✅ Serverni ishga tushirish
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-
 });

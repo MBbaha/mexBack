@@ -15,28 +15,58 @@ const registerGuest = async (req, res) => {
   }));
 
   try {
-    // 🔽 Xonalarni sig‘im DESC, roomNumber ASC bo‘yicha tartiblash
-    const rooms = await Room.find().sort({ capacity: -1, roomNumber: 1 });
-
-    let guestIndex = 0;
-
     const checkInDate = new Date(checkIn);
     const checkOutDate = new Date(checkOut);
 
-    for (let room of rooms) {
-      const overlapping = room.guests.filter(g => {
-        const gFrom = new Date(g.from);
-        const gTo = new Date(g.to);
-        return checkInDate < gTo && checkOutDate > gFrom;
+    const allRooms = await Room.find();
+
+    // roomNumber ni number qilib olish
+    const roomsWithEtaj = allRooms.map(room => ({
+      ...room._doc,
+      etaj: Math.floor(parseInt(room.roomNumber) / 100), // 701 -> 7
+    }));
+
+    // Qavatlar bo‘yicha guruhlash
+    const grouped = {};
+    for (let room of roomsWithEtaj) {
+      if (!grouped[room.etaj]) grouped[room.etaj] = [];
+      grouped[room.etaj].push(room);
+    }
+
+    // Qavat raqamlarini tartiblash: 7, 8, 9...
+    const sortedEtajKeys = Object.keys(grouped).sort((a, b) => a - b);
+
+    let guestIndex = 0;
+
+    for (let etaj of sortedEtajKeys) {
+      // Shu etajdagi xonalarni sig‘im DESC, roomNumber ASC bo‘yicha sort qilamiz
+      const sortedRooms = grouped[etaj].sort((a, b) => {
+        if (b.capacity !== a.capacity) return b.capacity - a.capacity;
+        return parseInt(a.roomNumber) - parseInt(b.roomNumber);
       });
 
-      const available = room.capacity - overlapping.length;
+      for (let room of sortedRooms) {
+        const overlapping = room.guests.filter(g => {
+          const gFrom = new Date(g.from);
+          const gTo = new Date(g.to);
+          return checkInDate < gTo && checkOutDate > gFrom;
+        });
 
-      if (available > 0) {
-        const toAdd = guests.slice(guestIndex, guestIndex + available);
-        room.guests.push(...toAdd);
-        await room.save();
-        guestIndex += toAdd.length;
+        const available = room.capacity - overlapping.length;
+
+        if (available > 0) {
+          const toAdd = guests.slice(guestIndex, guestIndex + available);
+          room.guests.push(...toAdd);
+
+          // Saqlash uchun to‘g‘ri Room instance olamiz
+          const roomDoc = await Room.findById(room._id);
+          roomDoc.guests = room.guests;
+          await roomDoc.save();
+
+          guestIndex += toAdd.length;
+        }
+
+        if (guestIndex >= guestsCount) break;
       }
 
       if (guestIndex >= guestsCount) break;
@@ -54,6 +84,7 @@ const registerGuest = async (req, res) => {
     res.status(500).json({ message: '❌ Xatolik yuz berdi', error: err.message });
   }
 };
+
 
 
 
@@ -169,5 +200,6 @@ module.exports = {
   deleteGuest,
   updateGuest
 };
+
 
 

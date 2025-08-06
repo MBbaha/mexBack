@@ -10,8 +10,8 @@ const registerGuest = async (req, res) => {
 
   const guests = Array.from({ length: guestsCount }, (_, i) => ({
     name: `Guest ${Date.now()}-${i + 1}`,
-    from: checkIn,
-    to: checkOut, // bu to‘g‘ri, lekin overlap hisoblashda e’tibor kerak
+    from: new Date(checkIn),
+    to: new Date(checkOut),
   }));
 
   try {
@@ -25,17 +25,17 @@ const registerGuest = async (req, res) => {
       const overlapping = room.guests.filter(g => {
         const gFrom = new Date(g.from);
         const gTo = new Date(g.to);
-        // Bu holatda checkOut kuni band hisoblanmaydi
         return checkInDate < gTo && checkOutDate > gFrom;
       });
 
-      const available = room.capacity - overlapping.length;
-
+      const available = Math.floor(room.capacity - overlapping.length);
       if (available > 0) {
         const toAdd = guests.slice(guestIndex, guestIndex + available);
-        room.guests.push(...toAdd);
-        await room.save();
-        guestIndex += toAdd.length;
+        if (toAdd.length > 0) {
+          room.guests.push(...toAdd);
+          await room.save();
+          guestIndex += toAdd.length;
+        }
       }
 
       if (guestIndex >= guestsCount) break;
@@ -53,6 +53,7 @@ const registerGuest = async (req, res) => {
     res.status(500).json({ message: '❌ Xatolik yuz berdi', error: err.message });
   }
 };
+
 
 
 
@@ -167,3 +168,4 @@ module.exports = {
   deleteGuest,
   updateGuest
 };
+

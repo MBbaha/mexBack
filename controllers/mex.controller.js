@@ -10,12 +10,14 @@ const registerGuest = async (req, res) => {
 
   const guests = Array.from({ length: guestsCount }, (_, i) => ({
     name: `Guest ${Date.now()}-${i + 1}`,
-    from: new Date(checkIn),
-    to: new Date(checkOut),
+    from: checkIn,
+    to: checkOut,
   }));
 
   try {
-    const rooms = await Room.find();
+    // 🔽 Xonalarni sig‘im DESC, roomNumber ASC bo‘yicha tartiblash
+    const rooms = await Room.find().sort({ capacity: -1, roomNumber: 1 });
+
     let guestIndex = 0;
 
     const checkInDate = new Date(checkIn);
@@ -28,14 +30,13 @@ const registerGuest = async (req, res) => {
         return checkInDate < gTo && checkOutDate > gFrom;
       });
 
-      const available = Math.floor(room.capacity - overlapping.length);
+      const available = room.capacity - overlapping.length;
+
       if (available > 0) {
         const toAdd = guests.slice(guestIndex, guestIndex + available);
-        if (toAdd.length > 0) {
-          room.guests.push(...toAdd);
-          await room.save();
-          guestIndex += toAdd.length;
-        }
+        room.guests.push(...toAdd);
+        await room.save();
+        guestIndex += toAdd.length;
       }
 
       if (guestIndex >= guestsCount) break;
@@ -168,4 +169,5 @@ module.exports = {
   deleteGuest,
   updateGuest
 };
+
 

@@ -4,13 +4,10 @@ const Room = require('../models/roomSchema');
 const registerGuest = async (req, res) => {
   const { guestsCount, checkIn, checkOut, companyName, phoneNumber } = req.body;
 
-  if (!guestsCount || !checkIn || !checkOut) {
+  if (!guestsCount || !checkIn || !checkOut|| !companyName || !phoneNumber) {
     return res.status(400).json({ message: 'guestsCount, checkIn va checkOut majburiy.' });
   }
 
-  if (!companyName || !phoneNumber) {
-    return res.status(400).json({ message: 'companyName va phoneNumber ham majburiy.' });
-  }
 
   const guests = Array.from({ length: guestsCount }, (_, i) => ({
     name: `Guest ${Date.now()}-${i + 1}`,
@@ -202,6 +199,7 @@ module.exports = {
   deleteGuest,
   updateGuest
 };
+
 
 
 

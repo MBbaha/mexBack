@@ -5,7 +5,7 @@
     from: Date,
     to: Date,
     guestsCount:String,
-    company: String,
+     companyName: String,
     phoneNumber: String
   });
 
@@ -16,4 +16,5 @@
   });
 
   module.exports = mongoose.model('Room', roomSchema);
+
 

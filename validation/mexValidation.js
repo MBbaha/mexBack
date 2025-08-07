@@ -24,7 +24,7 @@ const mexTaqsimotRegisterValidation = Joi.object({
       'any.required': 'checkOut majburiy.',
     }),
 
-  company: Joi.string().trim().min(2).max(100).required()
+   companyName: Joi.string().trim().min(2).max(100).required()
     .messages({
       'string.base': 'company matn bo‘lishi kerak.',
       'string.empty': 'company bo‘sh bo‘lmasligi kerak.',
@@ -65,7 +65,7 @@ const mexTaqsimotUpdateValidation = Joi.object({
       'date.format': 'checkOut noto‘g‘ri formatda (YYYY-MM-DD) kiritilgan.'
     }),
 
-  company: Joi.string().trim().min(2).max(100).optional()
+   companyName: Joi.string().trim().min(2).max(100).optional()
     .messages({
       'string.base': 'company matn bo‘lishi kerak.',
       'string.min': 'company nomi kamida 2 ta belgidan iborat bo‘lishi kerak.'
@@ -82,6 +82,7 @@ module.exports = {
   mexTaqsimotRegisterValidation,
   mexTaqsimotUpdateValidation,
 };
+
 
 
 

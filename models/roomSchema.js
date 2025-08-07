@@ -4,7 +4,9 @@
     name: String,
     from: Date,
     to: Date,
-    guestsCount:String
+    guestsCount:String,
+    company: String,
+    phoneNumber: String
   });
 
   const roomSchema = new mongoose.Schema({
@@ -14,3 +16,4 @@
   });
 
   module.exports = mongoose.model('Room', roomSchema);
+

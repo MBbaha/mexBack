@@ -2,16 +2,22 @@ const Room = require('../models/roomSchema');
 
 // POST: Mehmonlarni avtomatik taqsimlash
 const registerGuest = async (req, res) => {
-  const { guestsCount, checkIn, checkOut } = req.body;
+  const { guestsCount, checkIn, checkOut, companyName, phoneNumber } = req.body;
 
   if (!guestsCount || !checkIn || !checkOut) {
     return res.status(400).json({ message: 'guestsCount, checkIn va checkOut majburiy.' });
+  }
+
+  if (!companyName || !phoneNumber) {
+    return res.status(400).json({ message: 'companyName va phoneNumber ham majburiy.' });
   }
 
   const guests = Array.from({ length: guestsCount }, (_, i) => ({
     name: `Guest ${Date.now()}-${i + 1}`,
     from: checkIn,
     to: checkOut,
+    companyName,
+    phoneNumber,
   }));
 
   try {
@@ -20,26 +26,22 @@ const registerGuest = async (req, res) => {
 
     const allRooms = await Room.find();
 
-    // roomNumber ni number qilib olish
     const roomsWithEtaj = allRooms.map(room => ({
       ...room._doc,
-      etaj: Math.floor(parseInt(room.roomNumber) / 100), // 701 -> 7
+      etaj: Math.floor(parseInt(room.roomNumber) / 100),
     }));
 
-    // Qavatlar bo‘yicha guruhlash
     const grouped = {};
     for (let room of roomsWithEtaj) {
       if (!grouped[room.etaj]) grouped[room.etaj] = [];
       grouped[room.etaj].push(room);
     }
 
-    // Qavat raqamlarini tartiblash: 7, 8, 9...
     const sortedEtajKeys = Object.keys(grouped).sort((a, b) => a - b);
 
     let guestIndex = 0;
 
     for (let etaj of sortedEtajKeys) {
-      // Shu etajdagi xonalarni sig‘im DESC, roomNumber ASC bo‘yicha sort qilamiz
       const sortedRooms = grouped[etaj].sort((a, b) => {
         if (b.capacity !== a.capacity) return b.capacity - a.capacity;
         return parseInt(a.roomNumber) - parseInt(b.roomNumber);
@@ -58,7 +60,6 @@ const registerGuest = async (req, res) => {
           const toAdd = guests.slice(guestIndex, guestIndex + available);
           room.guests.push(...toAdd);
 
-          // Saqlash uchun to‘g‘ri Room instance olamiz
           const roomDoc = await Room.findById(room._id);
           roomDoc.guests = room.guests;
           await roomDoc.save();
@@ -79,11 +80,12 @@ const registerGuest = async (req, res) => {
       });
     }
 
-    res.status(200).json({ message: '✅ Barcha mehmonlar muvaffaqiyatli taqsimlandi.' });
+    res.status(200).json({ message: `✅ Barcha mehmonlar "${companyName}" firmasidan joylashtirildi.` });
   } catch (err) {
     res.status(500).json({ message: '❌ Xatolik yuz berdi', error: err.message });
   }
 };
+
 
 
 
@@ -200,6 +202,7 @@ module.exports = {
   deleteGuest,
   updateGuest
 };
+
 
 
 

@@ -1,7 +1,5 @@
 const Joi = require('joi');
 
-
-
 const mexTaqsimotRegisterValidation = Joi.object({
   guestsCount: Joi.number().integer().min(1).required()
     .messages({
@@ -24,20 +22,12 @@ const mexTaqsimotRegisterValidation = Joi.object({
       'any.required': 'checkOut majburiy.',
     }),
 
-   companyName: Joi.string().trim().min(2).max(100).required()
-    .messages({
-      'string.base': 'company matn bo‘lishi kerak.',
-      'string.empty': 'company bo‘sh bo‘lmasligi kerak.',
-      'string.min': 'company nomi kamida 2 ta belgidan iborat bo‘lishi kerak.',
-      'any.required': 'company majburiy.',
-    }),
+   companyName: Joi.string().trim().min(2).max(100).required(),
+ 
 
-  phoneNumber: Joi.string().pattern(/^\+?\d{9,15}$/).required()
-    .messages({
-      'string.pattern.base': 'phoneNumber noto‘g‘ri formatda. Faqat raqamlar va ixtiyoriy "+" belgisi.',
-      'string.empty': 'phoneNumber bo‘sh bo‘lmasligi kerak.',
-      'any.required': 'phoneNumber majburiy.',
-    }),
+
+phoneNumber: Joi.string().min(1).pattern(/^\+?\d{9,15}$/).required(),
+
 
   isactive: Joi.boolean().optional()
 });
@@ -82,8 +72,6 @@ module.exports = {
   mexTaqsimotRegisterValidation,
   mexTaqsimotUpdateValidation,
 };
-
-
 
 
 

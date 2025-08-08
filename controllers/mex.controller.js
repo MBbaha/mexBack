@@ -13,8 +13,8 @@ const registerGuest = async (req, res) => {
     name: `Guest ${Date.now()}-${i + 1}`,
     from: checkIn,
     to: checkOut,
-    companyName,
-    phoneNumber,
+    companyName: companyName,
+    phoneNumber:phoneNumber,
   }));
 
   try {
@@ -199,6 +199,7 @@ module.exports = {
   deleteGuest,
   updateGuest
 };
+
 
 
 

@@ -177,46 +177,6 @@ const getMonthlyStats = async (req, res) => {
 
 
 // Qidiruv route
-const getBookedRooms = async (req, res) => {
-  const query = req.query.query?.trim(); // foydalanuvchi kiritgan so'z/sana/raqam
-  if (!query) {
-    return res.status(400).json({ message: "❌ Qidiruv so'rovi yo'q" });
-  }
-
-  try {
-    // Qidiruv sharti
-    const searchRegex = new RegExp(query, 'i'); // katta-kichik harf farqini yo'q qiladi
-
-    const rooms = await Room.find({
-      $or: [
-        // 1️⃣ Xona darajasida saqlangan companyName yoki phoneNumber bo'yicha
-        { companyName: searchRegex },
-        { phoneNumber: searchRegex },
-
-        // 2️⃣ Guests array ichida qidirish
-        {
-          guests: {
-            $elemMatch: {
-              $or: [
-                
-                { phoneNumber: searchRegex },
-                { companyName: searchRegex },
-                { from: { $regex: query, $options: 'i' } }, // sana string ko'rinishida
-                { to: { $regex: query, $options: 'i' } }
-              ]
-            }
-          }
-        }
-      ]
-    });
-
-    res.json({ rooms }); // topilgan xonalarni qaytaramiz
-  } catch (error) {
-    console.error("❌ Qidiruvda xatolik:", error);
-    res.status(500).json({ message: "Ichki server xatosi" });
-  }
-};
-
 
 
 
@@ -229,10 +189,10 @@ module.exports = {
   deleteRoom,
   updateRoom,
   getRoomAvailability,
-  getMonthlyStats,
-  getBookedRooms
-  
+  getMonthlyStats
+
 
 };
+
 
 

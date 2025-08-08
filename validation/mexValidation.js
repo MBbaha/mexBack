@@ -1,6 +1,6 @@
 const Joi = require('joi');
 
-const Joi = require('joi');
+
 
 const mexTaqsimotRegisterValidation = Joi.object({
   guestsCount: Joi.number().integer().min(1).required()
@@ -82,6 +82,7 @@ module.exports = {
   mexTaqsimotRegisterValidation,
   mexTaqsimotUpdateValidation,
 };
+
 
 
 

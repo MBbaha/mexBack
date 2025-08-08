@@ -215,7 +215,7 @@ const getBookedRooms = async (req, res) => {
     console.error("❌ Qidiruvda xatolik:", error);
     res.status(500).json({ message: "Ichki server xatosi" });
   }
-});
+};
 
 
 
@@ -234,4 +234,5 @@ module.exports = {
   
 
 };
+
 

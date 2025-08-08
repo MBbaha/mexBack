@@ -7,9 +7,8 @@ const {
   deleteRoom,
   updateRoom,
   getRoomAvailability,
-  getMonthlyStats,
-  getBookedRooms
- 
+  getMonthlyStats
+
 } = require("../controllers/room.controller");
 
 const {
@@ -49,8 +48,8 @@ roomCapacity.delete("/delete/:id", deleteRoom);
 
 roomCapacity.post('/availableStat', getRoomAvailability);
 
-roomCapacity.get('/getBookedRooms', getBookedRooms);
 
 roomCapacity.get('/monthly-stats', getMonthlyStats);
 module.exports = roomCapacity;
+
 

@@ -80,33 +80,34 @@ const getRoomAvailability = async (req, res) => {
     let availableRoomsCount = 0;
     let availableCapacity = 0;
     let availableDetails = [];
-    let occupiedRooms = [];
+
+    // Tashkilotlar bo‘yicha guruhlash
+    let occupiedByCompany = {};
 
     for (let room of allRooms) {
+      // Shu oraliqda band bo'lgan mehmonlar
       const bookedGuests = room.guests.filter(
         (g) =>
           new Date(g.from) <= end && new Date(g.to) >= start
       );
 
       if (bookedGuests.length === 0) {
+        // Bo'sh xona
         availableRoomsCount++;
         availableCapacity += room.capacity;
         availableDetails.push({
           number: room.number,
-          free: room.capacity,
+          free: room.capacity
         });
       } else {
-        occupiedRooms.push({
+        // Tashkilot nomini olish
+        const companyName = bookedGuests[0]?.companyName || "Noma'lum";
+        if (!occupiedByCompany[companyName]) {
+          occupiedByCompany[companyName] = [];
+        }
+        occupiedByCompany[companyName].push({
           number: room.number,
-          capacity: room.capacity,
-          companyName: bookedGuests[0]?.companyName || 'Noma’lum',
-          guests: bookedGuests.map((g) => ({
-            name: g.name,
-            phoneNumber: g.phoneNumber,
-            companyName: g.companyName,
-            from: g.from,
-            to: g.to,
-          })),
+          capacity: room.capacity
         });
       }
     }
@@ -116,62 +117,18 @@ const getRoomAvailability = async (req, res) => {
     const occupancyRate = ((usedCapacity / totalCapacity) * 100).toFixed(1);
 
     res.json({
+      checkIn,
+      checkOut,
       availableRooms: availableRoomsCount,
       availableCapacity,
       occupancyRate,
-      details: availableDetails,
-      occupiedRooms
+      occupiedByCompany, // Tashkilotlar bo‘yicha guruhlangan ma’lumot
+      availableDetails
     });
+
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Server xatosi' });
-  }
-};
-
-
-const getMonthlyStats = async (req, res) => {
-  try {
-    const { year, month } = req.query;
-
-    const startOfMonth = new Date(year, month - 1, 1);
-    const endOfMonth = new Date(year, month, 0); // Oxirgi kun
-
-    const allRooms = await Room.find();
-    const totalRooms = allRooms.length;
-    const totalCapacity = allRooms.reduce((acc, r) => acc + r.capacity, 0);
-
-    let usedCount = 0;
-
-    for (const room of allRooms) {
-      for (const guest of room.guests) {
-        const guestFrom = new Date(guest.from);
-        const guestTo = new Date(guest.to);
-
-        // Faqat shu oyga to‘g‘ri keladiganlar
-        if (
-          guestFrom <= endOfMonth &&
-          guestTo >= startOfMonth
-        ) {
-          usedCount++;
-        }
-      }
-    }
-
-    const occupancyRate = totalCapacity
-      ? ((usedCount / totalCapacity) * 100).toFixed(1)
-      : 0;
-
-    res.json({
-      year,
-      month,
-      totalRooms,
-      totalCapacity,
-      usedCount,
-      occupancyRate: Number(occupancyRate),
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Xatolik yuz berdi' });
+    res.status(500).json({ message: 'Server xatosi', error: err.message });
   }
 };
 
@@ -193,6 +150,7 @@ module.exports = {
 
 
 };
+
 
 
 

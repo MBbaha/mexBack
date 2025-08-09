@@ -72,61 +72,61 @@ const deleteRoom = async (req, res) => {
 const getRoomAvailability = async (req, res) => {
   try {
     const { checkIn, checkOut } = req.body;
-    const fromDate = new Date(checkIn);
-    const toDate = new Date(checkOut);
+    const start = new Date(checkIn);
+    const end = new Date(checkOut);
 
     const allRooms = await Room.find();
 
-    let availableRoomCount = 0;
+    let availableRoomsCount = 0;
     let availableCapacity = 0;
-    let totalCapacity = 209;
+    let availableDetails = [];
+    let occupiedRooms = [];
 
-    const detailedList = [];
+    for (let room of allRooms) {
+      const bookedGuests = room.guests.filter(
+        (g) =>
+          new Date(g.from) <= end && new Date(g.to) >= start
+      );
 
-    for (const room of allRooms) {
-      totalCapacity += room.capacity;
-
-      let occupiedCount = 0;
-      for (const guest of room.guests) {
-        const guestFrom = new Date(guest.from);
-        const guestTo = new Date(guest.to);
-
-        // Sana oralig‘ida to‘qnash keladiganlar band hisoblanadi
-        if (
-          (fromDate <= guestTo && toDate >= guestFrom)
-        ) {
-          occupiedCount++;
-        }
-      }
-
-      const free = room.capacity - occupiedCount;
-      if (free > 0) {
-        availableRoomCount++;
-        availableCapacity += free;
-        detailedList.push({
+      if (bookedGuests.length === 0) {
+        availableRoomsCount++;
+        availableCapacity += room.capacity;
+        availableDetails.push({
           number: room.number,
-          free: `${free}/${room.capacity}`,
+          free: room.capacity,
+        });
+      } else {
+        occupiedRooms.push({
+          number: room.number,
+          capacity: room.capacity,
+          companyName: bookedGuests[0]?.companyName || 'Noma’lum',
+          guests: bookedGuests.map((g) => ({
+            name: g.name,
+            phoneNumber: g.phoneNumber,
+            companyName: g.companyName,
+            from: g.from,
+            to: g.to,
+          })),
         });
       }
     }
 
-    const occupancyRate = Math.round(
-      ((totalCapacity - availableCapacity) / totalCapacity) * 100
-    );
+    const totalCapacity = allRooms.reduce((sum, r) => sum + r.capacity, 0);
+    const usedCapacity = totalCapacity - availableCapacity;
+    const occupancyRate = ((usedCapacity / totalCapacity) * 100).toFixed(1);
 
     res.json({
-      availableRooms: availableRoomCount,
+      availableRooms: availableRoomsCount,
       availableCapacity,
-      totalCapacity,
       occupancyRate,
-      details: detailedList,
+      details: availableDetails,
+      occupiedRooms
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Xatolik yuz berdi' });
+    res.status(500).json({ message: 'Server xatosi' });
   }
 };
-// controller/statController.js
 
 
 const getMonthlyStats = async (req, res) => {
@@ -193,6 +193,7 @@ module.exports = {
 
 
 };
+
 
 
 

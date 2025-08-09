@@ -72,63 +72,58 @@ const deleteRoom = async (req, res) => {
 const getRoomAvailability = async (req, res) => {
   try {
     const { checkIn, checkOut } = req.body;
-    const start = new Date(checkIn);
-    const end = new Date(checkOut);
+    const fromDate = new Date(checkIn);
+    const toDate = new Date(checkOut);
 
     const allRooms = await Room.find();
 
-    let availableRoomsCount = 0;
+    let availableRoomCount = 0;
     let availableCapacity = 0;
-    let availableDetails = [];
+    let totalCapacity = 209;
 
-    // Tashkilotlar bo‘yicha guruhlash
-    let occupiedByCompany = {};
+    const detailedList = [];
 
-    for (let room of allRooms) {
-      // Shu oraliqda band bo'lgan mehmonlar
-      const bookedGuests = room.guests.filter(
-        (g) =>
-          new Date(g.from) <= end && new Date(g.to) >= start
-      );
+    for (const room of allRooms) {
+      totalCapacity += room.capacity;
 
-      if (bookedGuests.length === 0) {
-        // Bo'sh xona
-        availableRoomsCount++;
-        availableCapacity += room.capacity;
-        availableDetails.push({
-          number: room.number,
-          free: room.capacity
-        });
-      } else {
-        // Tashkilot nomini olish
-        const companyName = bookedGuests[0]?.companyName || "Noma'lum";
-        if (!occupiedByCompany[companyName]) {
-          occupiedByCompany[companyName] = [];
+      let occupiedCount = 0;
+      for (const guest of room.guests) {
+        const guestFrom = new Date(guest.from);
+        const guestTo = new Date(guest.to);
+
+        // Sana oralig‘ida to‘qnash keladiganlar band hisoblanadi
+        if (
+          (fromDate <= guestTo && toDate >= guestFrom)
+        ) {
+          occupiedCount++;
         }
-        occupiedByCompany[companyName].push({
+      }
+
+      const free = room.capacity - occupiedCount;
+      if (free > 0) {
+        availableRoomCount++;
+        availableCapacity += free;
+        detailedList.push({
           number: room.number,
-          capacity: room.capacity
+          free: `${free}/${room.capacity}`,
         });
       }
     }
 
-    const totalCapacity = allRooms.reduce((sum, r) => sum + r.capacity, 0);
-    const usedCapacity = totalCapacity - availableCapacity;
-    const occupancyRate = ((usedCapacity / totalCapacity) * 100).toFixed(1);
+    const occupancyRate = Math.round(
+      ((totalCapacity - availableCapacity) / totalCapacity) * 100
+    );
 
     res.json({
-      checkIn,
-      checkOut,
-      availableRooms: availableRoomsCount,
+      availableRooms: availableRoomCount,
       availableCapacity,
+      totalCapacity,
       occupancyRate,
-      occupiedByCompany, // Tashkilotlar bo‘yicha guruhlangan ma’lumot
-      availableDetails
+      details: detailedList,
     });
-
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Server xatosi', error: err.message });
+    res.status(500).json({ message: 'Xatolik yuz berdi' });
   }
 };
 
@@ -197,6 +192,7 @@ module.exports = {
 
 
 };
+
 
 
 

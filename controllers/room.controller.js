@@ -137,6 +137,53 @@ const getRoomAvailability = async (req, res) => {
 
 
 
+const getMonthlyStats = async (req, res) => {
+  try {
+    const { year, month } = req.query;
+
+    const startOfMonth = new Date(year, month - 1, 1);
+    const endOfMonth = new Date(year, month, 0); // Oxirgi kun
+
+    const allRooms = await Room.find();
+    const totalRooms = allRooms.length;
+    const totalCapacity = allRooms.reduce((acc, r) => acc + r.capacity, 0);
+
+    let usedCount = 0;
+
+    for (const room of allRooms) {
+      for (const guest of room.guests) {
+        const guestFrom = new Date(guest.from);
+        const guestTo = new Date(guest.to);
+
+        // Faqat shu oyga to‘g‘ri keladiganlar
+        if (
+          guestFrom <= endOfMonth &&
+          guestTo >= startOfMonth
+        ) {
+          usedCount++;
+        }
+      }
+    }
+
+    const occupancyRate = totalCapacity
+      ? ((usedCount / totalCapacity) * 100).toFixed(1)
+      : 0;
+
+    res.json({
+      year,
+      month,
+      totalRooms,
+      totalCapacity,
+      usedCount,
+      occupancyRate: Number(occupancyRate),
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Xatolik yuz berdi' });
+  }
+};
+
+
 
 
 
@@ -150,6 +197,7 @@ module.exports = {
 
 
 };
+
 
 
 

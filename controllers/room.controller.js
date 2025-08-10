@@ -135,7 +135,7 @@ const getRoomAvailability = async (req, res) => {
    ========================================================= */
 const availableStat = async (req, res) => {
   try {
-    const { checkIn, checkOut } = req.body;
+    const { checkIn, checkOut } = req.query; // ✅ req.body o‘rniga req.query
 
     if (!checkIn || !checkOut) {
       return res.status(400).json({
@@ -144,14 +144,8 @@ const availableStat = async (req, res) => {
       });
     }
 
-    const normalizeDate = (d) => {
-      const date = new Date(d);
-      date.setHours(0, 0, 0, 0);
-      return date;
-    };
-
-    const checkInDate = normalizeDate(checkIn);
-    const checkOutDate = normalizeDate(checkOut);
+    const checkInDate = new Date(checkIn);
+    const checkOutDate = new Date(checkOut);
 
     const allRooms = await Room.find()
       .populate("guests", "name phoneNumber")
@@ -160,8 +154,8 @@ const availableStat = async (req, res) => {
 
     const occupiedRooms = allRooms.filter((room) =>
       (room.bookings ?? []).some((booking) => {
-        const bIn = normalizeDate(booking.checkIn);
-        const bOut = normalizeDate(booking.checkOut);
+        const bIn = new Date(booking.checkIn);
+        const bOut = new Date(booking.checkOut);
         return bIn <= checkOutDate && bOut >= checkInDate;
       })
     );
@@ -174,10 +168,7 @@ const availableStat = async (req, res) => {
       success: true,
       availableRooms: availableRoomsList.length,
       availableCapacity: availableRoomsList.reduce((sum, r) => sum + r.capacity, 0),
-      occupancyRate: allRooms.length > 0 
-        ? ((occupiedRooms.length / allRooms.length) * 100).toFixed(1) 
-        : 0,
-      occupiedRooms,
+      occupancyRate: ((occupiedRooms.length / allRooms.length) * 100).toFixed(1),
       availableRoomsList,
     });
   } catch (error) {
@@ -188,6 +179,7 @@ const availableStat = async (req, res) => {
     });
   }
 };
+
 
 /* =========================================================
    STATISTIC 3 - Oylik bandlik statistikasi
@@ -243,4 +235,5 @@ module.exports = {
   availableStat,
   getMonthlyStats
 };
+
 

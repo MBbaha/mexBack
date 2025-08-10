@@ -6,17 +6,15 @@ const {
   getAllRooms,
   deleteRoom,
   updateRoom,
-  getRoomAvailability,
-  getMonthlyStats,
-  availableStat
+ 
 } = require("../controllers/room.controller");
 
 const {
   roomRegisterValidation,
   roomUpdateValidationSchema,
-  
 } = require("../validation/roomValidation");
 
+// ✅ VALIDATION MIDDLEWARE
 const validateSchemas = (schema) => (req, res, next) => {
   const { error } = schema.validate(req.body);
   if (error) {
@@ -28,15 +26,22 @@ const validateSchemas = (schema) => (req, res, next) => {
   next();
 };
 
-// Routes
-roomCapacity.post("/rooms", validateSchemas(roomRegisterValidation), createRoom);
-roomCapacity.get("/rooms", getAllRooms);
-roomCapacity.put("/rooms/:id", validateSchemas(roomUpdateValidationSchema), updateRoom);
-roomCapacity.delete("/rooms/:id", deleteRoom);
+// ✅ ROUTES
+roomCapacity.post(
+  "/register",
+  validateSchemas(roomRegisterValidation),
+  createRoom
+);
 
-roomCapacity.post("/rooms/availableStat", availableStat);
-roomCapacity.post("/rooms/availabilityRoom",  getRoomAvailability);
-roomCapacity.get("/rooms/monthly-stats", getMonthlyStats);
+roomCapacity.get("/getRoom", getAllRooms);
+
+roomCapacity.put(
+  "/updateRoomById/:id",
+  validateSchemas(roomUpdateValidationSchema),
+  updateRoom // ✅ TO‘G‘RILANDI
+);
+
+roomCapacity.delete("/delete/:id", deleteRoom);
+// ✅ TO‘G‘RILANDI
 
 module.exports = roomCapacity;
-

@@ -130,6 +130,48 @@ const getRoomAvailability = async (req, res) => {
 
 // Qidiruv route
 
+const availableStat = async (req, res) => {
+  try {
+    const { checkIn, checkOut } = req.body;
+
+    if (!checkIn || !checkOut) {
+      return res.status(400).json({ message: "Sana oralig‘i kerak" });
+    }
+
+    const checkInDate = new Date(checkIn);
+    const checkOutDate = new Date(checkOut);
+
+    // Barcha xonalar
+    const allRooms = await Room.find();
+
+    // Band xonalar
+    const occupiedRooms = allRooms.filter(room =>
+      room.bookings.some(booking => {
+        const bIn = new Date(booking.checkIn);
+        const bOut = new Date(booking.checkOut);
+        return bIn <= checkOutDate && bOut >= checkInDate;
+      })
+    );
+
+    // Bo‘sh xonalar
+    const availableRoomsList = allRooms.filter(room =>
+      !occupiedRooms.some(occ => occ.number === room.number)
+    );
+
+    res.json({
+      availableRooms: availableRoomsList.length,
+      availableCapacity: availableRoomsList.reduce((sum, r) => sum + r.capacity, 0),
+      occupancyRate: ((occupiedRooms.length / allRooms.length) * 100).toFixed(1),
+      occupiedRooms,
+      availableRoomsList
+    });
+  } catch (err) {
+    console.error("availableStat error:", err);
+    res.status(500).json({ message: "Server xatosi" });
+  }
+};
+
+
 
 
 const getMonthlyStats = async (req, res) => {
@@ -188,10 +230,12 @@ module.exports = {
   deleteRoom,
   updateRoom,
   getRoomAvailability,
-  getMonthlyStats
+  getMonthlyStats,
+  availableStat
 
 
 };
+
 
 
 

@@ -6,6 +6,7 @@ const {
   getAllRooms,
   deleteRoom,
   updateRoom,
+  getRoomAvailability,
   getMonthlyStats,
   availableStat
 } = require("../controllers/room.controller");
@@ -13,6 +14,7 @@ const {
 const {
   roomRegisterValidation,
   roomUpdateValidationSchema,
+  dateRangeValidation
 } = require("../validation/roomValidation");
 
 const validateSchemas = (schema) => (req, res, next) => {
@@ -26,30 +28,13 @@ const validateSchemas = (schema) => (req, res, next) => {
   next();
 };
 
-// Yangi xona
-roomCapacity.post(
-  "/register",
-  validateSchemas(roomRegisterValidation),
-  createRoom
-);
+// Routes
+roomCapacity.post("/rooms", validateSchemas(roomRegisterValidation), createRoom);
+roomCapacity.get("/rooms", getAllRooms);
+roomCapacity.put("/rooms/:id", validateSchemas(roomUpdateValidationSchema), updateRoom);
+roomCapacity.delete("/rooms/:id", deleteRoom);
 
-// Barcha xonalar
-roomCapacity.get("/getRoom", getAllRooms);
-
-// Xonani yangilash
-roomCapacity.put(
-  "/updateRoomById/:id",
-  validateSchemas(roomUpdateValidationSchema),
-  updateRoom
-);
-
-// Xonani o‘chirish
-roomCapacity.delete("/delete/:id", deleteRoom);
-
-// 📊 Bo‘sh va band xonalar statistikasi (POST bo‘lishi shart)
-roomCapacity.post("/availableStat", availableStat);
-
-// Oylik statistika
-roomCapacity.get("/monthly-stats", getMonthlyStats);
+roomCapacity.post("/rooms/availability", validateSchemas(dateRangeValidation), availableStat);
+roomCapacity.get("/rooms/monthly-stats", getMonthlyStats);
 
 module.exports = roomCapacity;

@@ -35,7 +35,7 @@ roomCapacity.post(
 
 roomCapacity.get("/getRoom", getAllRooms);
 
-roomCapacity.post("/availableStat", availableStat);
+roomCapacity.get("/availableStat", availableStat);
 
 
 roomCapacity.put(
@@ -48,6 +48,7 @@ roomCapacity.delete("/delete/:id", deleteRoom);
 // ✅ TO‘G‘RILANDI
 
 module.exports = roomCapacity;
+
 
 
 

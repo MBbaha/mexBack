@@ -144,17 +144,24 @@ const availableStat = async (req, res) => {
       });
     }
 
-    const checkInDate = new Date(checkIn);
-    const checkOutDate = new Date(checkOut);
+    const normalizeDate = (d) => {
+      const date = new Date(d);
+      date.setHours(0, 0, 0, 0);
+      return date;
+    };
+
+    const checkInDate = normalizeDate(checkIn);
+    const checkOutDate = normalizeDate(checkOut);
 
     const allRooms = await Room.find()
       .populate("guests", "name phoneNumber")
+      .populate("bookings", "checkIn checkOut")
       .lean();
 
     const occupiedRooms = allRooms.filter((room) =>
-      room.bookings?.some((booking) => {
-        const bIn = new Date(booking.checkIn);
-        const bOut = new Date(booking.checkOut);
+      (room.bookings ?? []).some((booking) => {
+        const bIn = normalizeDate(booking.checkIn);
+        const bOut = normalizeDate(booking.checkOut);
         return bIn <= checkOutDate && bOut >= checkInDate;
       })
     );
@@ -164,9 +171,12 @@ const availableStat = async (req, res) => {
     );
 
     res.json({
+      success: true,
       availableRooms: availableRoomsList.length,
       availableCapacity: availableRoomsList.reduce((sum, r) => sum + r.capacity, 0),
-      occupancyRate: ((occupiedRooms.length / allRooms.length) * 100).toFixed(1),
+      occupancyRate: allRooms.length > 0 
+        ? ((occupiedRooms.length / allRooms.length) * 100).toFixed(1) 
+        : 0,
       occupiedRooms,
       availableRoomsList,
     });
@@ -233,3 +243,4 @@ module.exports = {
   availableStat,
   getMonthlyStats
 };
+

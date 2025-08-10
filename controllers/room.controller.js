@@ -24,7 +24,7 @@ const createRoom = async (req, res) => {
 /* =========================
    READ - Barcha xonalarni olish
    ========================= */
-
+const getAllRooms = async (req, res) => {
   try {
     const rooms = await Room.find().sort({ number: 1 });
     res.status(200).json(rooms);
@@ -180,7 +180,6 @@ const availableStat = async (req, res) => {
   }
 };
 
-
 /* =========================================================
    STATISTIC 3 - Oylik bandlik statistikasi
    ========================================================= */
@@ -235,6 +234,3 @@ module.exports = {
   availableStat,
   getMonthlyStats
 };
-
-
-

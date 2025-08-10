@@ -9,7 +9,6 @@ const {
   getRoomAvailability,
   getMonthlyStats,
   availableStat
-
 } = require("../controllers/room.controller");
 
 const {
@@ -17,7 +16,6 @@ const {
   roomUpdateValidationSchema,
 } = require("../validation/roomValidation");
 
-// ✅ VALIDATION MIDDLEWARE
 const validateSchemas = (schema) => (req, res, next) => {
   const { error } = schema.validate(req.body);
   if (error) {
@@ -29,30 +27,15 @@ const validateSchemas = (schema) => (req, res, next) => {
   next();
 };
 
-// ✅ ROUTES
-roomCapacity.post(
-  "/register",
-  validateSchemas(roomRegisterValidation),
-  createRoom
-);
-
+// 📌 ROUTES
+roomCapacity.post("/register", validateSchemas(roomRegisterValidation), createRoom);
 roomCapacity.get("/getRoom", getAllRooms);
-
-roomCapacity.put(
-  "/updateRoomById/:id",
-  validateSchemas(roomUpdateValidationSchema),
-  updateRoom // ✅ TO‘G‘RILANDI
-);
-
+roomCapacity.put("/updateRoomById/:id", validateSchemas(roomUpdateValidationSchema), updateRoom);
 roomCapacity.delete("/delete/:id", deleteRoom);
-// ✅ TO‘G‘RILANDI
 
-roomCapacity.get('/availableStat', getRoomAvailability);
-roomCapacity.get('/availableStat', availableStat);
-
-
+// 📊 Statistikalar
+roomCapacity.post('/availableStat', availableStat); // POST
+roomCapacity.get('/roomAvailability', getRoomAvailability); // GET, boshqa path
 roomCapacity.get('/monthly-stats', getMonthlyStats);
+
 module.exports = roomCapacity;
-
-
-

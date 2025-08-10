@@ -34,8 +34,9 @@ roomCapacity.get("/rooms", getAllRooms);
 roomCapacity.put("/rooms/:id", validateSchemas(roomUpdateValidationSchema), updateRoom);
 roomCapacity.delete("/rooms/:id", deleteRoom);
 
-roomCapacity.post("/rooms/availableStat", validateSchemas(dateRangeValidation), availableStat);
-roomCapacity.post("/rooms/availabilityRoom", validateSchemas(dateRangeValidation), getRoomAvailability);
+roomCapacity.post("/rooms/availableStat", availableStat);
+roomCapacity.post("/rooms/availabilityRoom",  getRoomAvailability);
 roomCapacity.get("/rooms/monthly-stats", getMonthlyStats);
 
 module.exports = roomCapacity;
+

@@ -135,39 +135,56 @@ const availableStat = async (req, res) => {
     const { checkIn, checkOut } = req.body;
 
     if (!checkIn || !checkOut) {
-      return res.status(400).json({ message: "Sana oralig‘i kerak" });
+      return res.status(400).json({
+        success: false,
+        message: "checkIn va checkOut sanalarini kiriting",
+      });
     }
 
+    // String sanalarni Date formatiga o‘tkazamiz
     const checkInDate = new Date(checkIn);
     const checkOutDate = new Date(checkOut);
 
-    // Barcha xonalar
-    const allRooms = await Room.find();
+    // Barcha xonalarni olamiz (guests va companyName bilan birga)
+    const allRooms = await Room.find()
+      .populate("guests", "name phoneNumber") // faqat kerakli maydonlar
+      .lean();
 
-    // Band xonalar
-    const occupiedRooms = allRooms.filter(room =>
-      room.bookings.some(booking => {
+    // Band xonalarni aniqlash
+    const occupiedRooms = allRooms.filter((room) =>
+      room.bookings?.some((booking) => {
         const bIn = new Date(booking.checkIn);
         const bOut = new Date(booking.checkOut);
+        // Sana oralig‘i kesishsa, xona band hisoblanadi
         return bIn <= checkOutDate && bOut >= checkInDate;
       })
     );
 
-    // Bo‘sh xonalar
-    const availableRoomsList = allRooms.filter(room =>
-      !occupiedRooms.some(occ => occ.number === room.number)
+    // Bo‘sh xonalarni aniqlash
+    const availableRoomsList = allRooms.filter(
+      (room) => !occupiedRooms.some((occ) => occ.number === room.number)
     );
 
+    // Natijani qaytaramiz
     res.json({
       availableRooms: availableRoomsList.length,
-      availableCapacity: availableRoomsList.reduce((sum, r) => sum + r.capacity, 0),
-      occupancyRate: ((occupiedRooms.length / allRooms.length) * 100).toFixed(1),
+      availableCapacity: availableRoomsList.reduce(
+        (sum, r) => sum + r.capacity,
+        0
+      ),
+      occupancyRate: (
+        (occupiedRooms.length / allRooms.length) *
+        100
+      ).toFixed(1),
       occupiedRooms,
-      availableRoomsList
+      availableRoomsList,
     });
-  } catch (err) {
-    console.error("availableStat error:", err);
-    res.status(500).json({ message: "Server xatosi" });
+  } catch (error) {
+    console.error("availableStat error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server xatosi",
+    });
   }
 };
 
@@ -235,6 +252,7 @@ module.exports = {
 
 
 };
+
 
 
 

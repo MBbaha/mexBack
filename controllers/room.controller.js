@@ -225,6 +225,35 @@ const getMonthlyStats = async (req, res) => {
   }
 };
 
+const getBookedRooms = async (req, res) => {
+  try {
+    const { checkIn, checkOut } = req.query;
+
+    if (!checkIn || !checkOut) {
+      return res.status(400).json({ message: "checkIn va checkOut sanalarini kiriting" });
+    }
+
+    // ISO formatdagi sanalar
+    const startDate = new Date(checkIn);
+    const endDate = new Date(checkOut);
+
+    // Xonalarni topish — berilgan sanalarda band bo‘lgan xonalar
+    const bookedRooms = await Room.find({
+      "guests": {
+        $elemMatch: {
+          checkIn: { $lte: endDate }, // kirish sanasi endDate dan oldin bo‘lishi kerak
+          checkOut: { $gte: startDate } // chiqish sanasi startDate dan keyin bo‘lishi kerak
+        }
+      }
+    });
+
+    res.json(bookedRooms);
+  } catch (err) {
+    console.error("Xatolik:", err);
+    res.status(500).json({ message: "Server xatosi" });
+  }
+};
+
 module.exports = {
   createRoom,
   getAllRooms,
@@ -232,5 +261,7 @@ module.exports = {
   deleteRoom,
   getRoomAvailability,
   availableStat,
-  getMonthlyStats
+  getMonthlyStats,
+   getBookedRooms
 };
+

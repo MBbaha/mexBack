@@ -6,7 +6,7 @@ const {
   getAllRooms,
   deleteRoom,
   updateRoom,
- availableStat,
+ availableStat
 } = require("../controllers/room.controller");
 
 const {
@@ -34,6 +34,7 @@ roomCapacity.post(
 );
 
 roomCapacity.get("/getRoom", getAllRooms);
+
 roomCapacity.get("/availableStat", availabRooms);
 
 
@@ -47,4 +48,5 @@ roomCapacity.delete("/delete/:id", deleteRoom);
 // ✅ TO‘G‘RILANDI
 
 module.exports = roomCapacity;
+
 

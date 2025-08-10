@@ -1,6 +1,8 @@
 const Room = require('../models/roomSchema');
 
-// ➕ Yangi xona yaratish
+/* =========================
+   CREATE - Yangi xona yaratish
+   ========================= */
 const createRoom = async (req, res) => {
   try {
     const { number, capacity } = req.body;
@@ -19,27 +21,28 @@ const createRoom = async (req, res) => {
   }
 };
 
-
-// 📄 Barcha xonalarni olish
+/* =========================
+   READ - Barcha xonalarni olish
+   ========================= */
 const getAllRooms = async (req, res) => {
   try {
-    const rooms = await Room.find().sort({ roomNumber: 1 });
+    const rooms = await Room.find().sort({ number: 1 });
     res.status(200).json(rooms);
   } catch (err) {
     res.status(500).json({ message: 'Xonalarni olishda xatolik', error: err.message });
   }
 };
 
-
-
-// ✏️ Xonani yangilash
+/* =========================
+   UPDATE - Xonani yangilash
+   ========================= */
 const updateRoom = async (req, res) => {
   try {
-    const { roomNumber, capacity } = req.body;
+    const { number, capacity } = req.body;
 
     const updatedRoom = await Room.findByIdAndUpdate(
       req.params.id,
-      { roomNumber, capacity },
+      { number, capacity },
       { new: true, runValidators: true }
     );
 
@@ -53,7 +56,9 @@ const updateRoom = async (req, res) => {
   }
 };
 
-// ❌ Xonani o‘chirish
+/* =========================
+   DELETE - Xonani o‘chirish
+   ========================= */
 const deleteRoom = async (req, res) => {
   try {
     const deletedRoom = await Room.findByIdAndDelete(req.params.id);
@@ -68,7 +73,9 @@ const deleteRoom = async (req, res) => {
   }
 };
 
-
+/* =========================================================
+   STATISTIC 1 - Sana oralig‘idagi bo‘sh joylarni hisoblash
+   ========================================================= */
 const getRoomAvailability = async (req, res) => {
   try {
     const { checkIn, checkOut } = req.body;
@@ -79,22 +86,18 @@ const getRoomAvailability = async (req, res) => {
 
     let availableRoomCount = 0;
     let availableCapacity = 0;
-    let totalCapacity = 209;
+    let totalCapacity = allRooms.reduce((sum, r) => sum + r.capacity, 0);
 
     const detailedList = [];
 
     for (const room of allRooms) {
-      totalCapacity += room.capacity;
-
       let occupiedCount = 0;
+
       for (const guest of room.guests) {
         const guestFrom = new Date(guest.from);
         const guestTo = new Date(guest.to);
 
-        // Sana oralig‘ida to‘qnash keladiganlar band hisoblanadi
-        if (
-          (fromDate <= guestTo && toDate >= guestFrom)
-        ) {
+        if (fromDate <= guestTo && toDate >= guestFrom) {
           occupiedCount++;
         }
       }
@@ -127,9 +130,9 @@ const getRoomAvailability = async (req, res) => {
   }
 };
 
-
-// Qidiruv route
-
+/* =========================================================
+   STATISTIC 2 - Booking’lar orqali bo‘sh joylarni hisoblash
+   ========================================================= */
 const availableStat = async (req, res) => {
   try {
     const { checkIn, checkOut } = req.body;
@@ -141,41 +144,29 @@ const availableStat = async (req, res) => {
       });
     }
 
-    // String sanalarni Date formatiga o‘tkazamiz
     const checkInDate = new Date(checkIn);
     const checkOutDate = new Date(checkOut);
 
-    // Barcha xonalarni olamiz (guests va companyName bilan birga)
     const allRooms = await Room.find()
-      .populate("guests", "name phoneNumber") // faqat kerakli maydonlar
+      .populate("guests", "name phoneNumber")
       .lean();
 
-    // Band xonalarni aniqlash
     const occupiedRooms = allRooms.filter((room) =>
       room.bookings?.some((booking) => {
         const bIn = new Date(booking.checkIn);
         const bOut = new Date(booking.checkOut);
-        // Sana oralig‘i kesishsa, xona band hisoblanadi
         return bIn <= checkOutDate && bOut >= checkInDate;
       })
     );
 
-    // Bo‘sh xonalarni aniqlash
     const availableRoomsList = allRooms.filter(
       (room) => !occupiedRooms.some((occ) => occ.number === room.number)
     );
 
-    // Natijani qaytaramiz
     res.json({
       availableRooms: availableRoomsList.length,
-      availableCapacity: availableRoomsList.reduce(
-        (sum, r) => sum + r.capacity,
-        0
-      ),
-      occupancyRate: (
-        (occupiedRooms.length / allRooms.length) *
-        100
-      ).toFixed(1),
+      availableCapacity: availableRoomsList.reduce((sum, r) => sum + r.capacity, 0),
+      occupancyRate: ((occupiedRooms.length / allRooms.length) * 100).toFixed(1),
       occupiedRooms,
       availableRoomsList,
     });
@@ -188,15 +179,15 @@ const availableStat = async (req, res) => {
   }
 };
 
-
-
-
+/* =========================================================
+   STATISTIC 3 - Oylik bandlik statistikasi
+   ========================================================= */
 const getMonthlyStats = async (req, res) => {
   try {
     const { year, month } = req.query;
 
     const startOfMonth = new Date(year, month - 1, 1);
-    const endOfMonth = new Date(year, month, 0); // Oxirgi kun
+    const endOfMonth = new Date(year, month, 0);
 
     const allRooms = await Room.find();
     const totalRooms = allRooms.length;
@@ -209,11 +200,7 @@ const getMonthlyStats = async (req, res) => {
         const guestFrom = new Date(guest.from);
         const guestTo = new Date(guest.to);
 
-        // Faqat shu oyga to‘g‘ri keladiganlar
-        if (
-          guestFrom <= endOfMonth &&
-          guestTo >= startOfMonth
-        ) {
+        if (guestFrom <= endOfMonth && guestTo >= startOfMonth) {
           usedCount++;
         }
       }
@@ -237,27 +224,12 @@ const getMonthlyStats = async (req, res) => {
   }
 };
 
-
-
-
-
 module.exports = {
   createRoom,
   getAllRooms,
-  deleteRoom,
   updateRoom,
+  deleteRoom,
   getRoomAvailability,
-  getMonthlyStats,
-  availableStat
-
-
+  availableStat,
+  getMonthlyStats
 };
-
-
-
-
-
-
-
-
-

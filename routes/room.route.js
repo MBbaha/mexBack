@@ -14,7 +14,7 @@ const {
 const {
   roomRegisterValidation,
   roomUpdateValidationSchema,
-  dateRangeValidation
+  
 } = require("../validation/roomValidation");
 
 const validateSchemas = (schema) => (req, res, next) => {
@@ -34,7 +34,8 @@ roomCapacity.get("/rooms", getAllRooms);
 roomCapacity.put("/rooms/:id", validateSchemas(roomUpdateValidationSchema), updateRoom);
 roomCapacity.delete("/rooms/:id", deleteRoom);
 
-roomCapacity.post("/rooms/availability", validateSchemas(dateRangeValidation), availableStat);
+roomCapacity.post("/rooms/availableStat", validateSchemas(dateRangeValidation), availableStat);
+roomCapacity.post("/rooms/availabilityRoom", validateSchemas(dateRangeValidation), getRoomAvailability);
 roomCapacity.get("/rooms/monthly-stats", getMonthlyStats);
 
 module.exports = roomCapacity;

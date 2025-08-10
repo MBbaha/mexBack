@@ -24,7 +24,7 @@ const createRoom = async (req, res) => {
 /* =========================
    READ - Barcha xonalarni olish
    ========================= */
-const getAllRooms = async (req, res) => {
+
   try {
     const rooms = await Room.find().sort({ number: 1 });
     res.status(200).json(rooms);
@@ -235,5 +235,6 @@ module.exports = {
   availableStat,
   getMonthlyStats
 };
+
 
 

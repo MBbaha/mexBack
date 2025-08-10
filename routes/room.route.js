@@ -6,7 +6,6 @@ const {
   getAllRooms,
   deleteRoom,
   updateRoom,
-  getRoomAvailability,
   getMonthlyStats,
   availableStat
 } = require("../controllers/room.controller");
@@ -27,15 +26,30 @@ const validateSchemas = (schema) => (req, res, next) => {
   next();
 };
 
-// 📌 ROUTES
-roomCapacity.post("/register", validateSchemas(roomRegisterValidation), createRoom);
+// Yangi xona
+roomCapacity.post(
+  "/register",
+  validateSchemas(roomRegisterValidation),
+  createRoom
+);
+
+// Barcha xonalar
 roomCapacity.get("/getRoom", getAllRooms);
-roomCapacity.put("/updateRoomById/:id", validateSchemas(roomUpdateValidationSchema), updateRoom);
+
+// Xonani yangilash
+roomCapacity.put(
+  "/updateRoomById/:id",
+  validateSchemas(roomUpdateValidationSchema),
+  updateRoom
+);
+
+// Xonani o‘chirish
 roomCapacity.delete("/delete/:id", deleteRoom);
 
-// 📊 Statistikalar
-roomCapacity.post('/availableStat', availableStat); // POST
-roomCapacity.get('/roomAvailability', getRoomAvailability); // GET, boshqa path
-roomCapacity.get('/monthly-stats', getMonthlyStats);
+// 📊 Bo‘sh va band xonalar statistikasi (POST bo‘lishi shart)
+roomCapacity.post("/availableStat", availableStat);
+
+// Oylik statistika
+roomCapacity.get("/monthly-stats", getMonthlyStats);
 
 module.exports = roomCapacity;

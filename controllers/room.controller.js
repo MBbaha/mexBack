@@ -238,37 +238,22 @@ const getBookedRooms = async (req, res) => {
 
     const bookedRooms = await Room.aggregate([
       {
-        $match: {
-          guests: {
-            $elemMatch: {
-              from: { $lte: endDate },
-              to: { $gte: startDate }
-            }
-          }
-        }
-      },
-      {
         $project: {
           number: 1,
           capacity: 1,
-          guests: {
-            $filter: {
-              input: "$guests",
-              as: "g",
-              cond: {
-                $and: [
-                  { $lte: ["$$g.from", endDate] },
-                  { $gte: ["$$g.to", startDate] }
-                ]
-              }
-            }
-          }
+          guests: 1
         }
       },
-      { $unwind: "$guests" }, // har bir guestni alohida qatorga ajratadi
+      { $unwind: "$guests" },
+      {
+        $match: {
+          "guests.from": { $lte: endDate },
+          "guests.to": { $gte: startDate }
+        }
+      },
       {
         $group: {
-          _id: "$guests.companyName", // kompaniya nomi bo‘yicha guruhlash
+          _id: "$guests.companyName",
           rooms: {
             $push: {
               roomNumber: "$number",
@@ -298,6 +283,7 @@ const getBookedRooms = async (req, res) => {
 
 
 
+
 module.exports = {
   createRoom,
   getAllRooms,
@@ -308,6 +294,7 @@ module.exports = {
   getMonthlyStats,
    getBookedRooms
 };
+
 
 
 

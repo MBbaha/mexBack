@@ -6,7 +6,7 @@ const {
   getAllRooms,
   deleteRoom,
   updateRoom,
- availableStat,
+  getRoomAvailability ,
   getBookedRooms
   
   
@@ -37,8 +37,9 @@ roomCapacity.post(
 );
 
 roomCapacity.get("/getRoom", getAllRooms);
+roomCapacity.get("/getFreeRoom", getRoomAvailability );
 
-roomCapacity.get("/availableStat", availableStat);
+
 
 roomCapacity.get("/booked", getBookedRooms);
 
@@ -52,6 +53,7 @@ roomCapacity.delete("/delete/:id", deleteRoom);
 // ✅ TO‘G‘RILANDI
 
 module.exports = roomCapacity;
+
 
 
 

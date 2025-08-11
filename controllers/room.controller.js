@@ -236,21 +236,56 @@ const getBookedRooms = async (req, res) => {
     const startDate = new Date(checkIn);
     const endDate = new Date(checkOut);
 
-    const bookedRooms = await Room.find({
-      guests: {
-        $elemMatch: {
-          from: { $lte: endDate },
-          to: { $gte: startDate }
+    const bookedRooms = await Room.aggregate([
+      {
+        $match: {
+          guests: {
+            $elemMatch: {
+              from: { $lte: endDate },
+              to: { $gte: startDate }
+            }
+          }
+        }
+      },
+      {
+        $project: {
+          number: 1,
+          guests: {
+            $filter: {
+              input: "$guests",
+              as: "g",
+              cond: {
+                $and: [
+                  { $lte: ["$$g.from", endDate] },
+                  { $gte: ["$$g.to", startDate] }
+                ]
+              }
+            }
+          }
+        }
+      },
+      { $unwind: "$guests" },
+      {
+        $group: {
+          _id: "$guests.companyName",
+          rooms: { $addToSet: "$number" } // faqat xona raqami
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          companyName: "$_id",
+          rooms: 1
         }
       }
-    });
+    ]);
 
     res.json(bookedRooms);
   } catch (err) {
     console.error("Xatolik:", err);
     res.status(500).json({ message: "Server xatosi" });
   }
-}; 
+};
 
 
 
@@ -266,6 +301,7 @@ module.exports = {
   getMonthlyStats,
    getBookedRooms
 };
+
 
 
 

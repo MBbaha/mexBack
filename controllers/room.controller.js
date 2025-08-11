@@ -236,31 +236,57 @@ const getBookedRooms = async (req, res) => {
     const startDate = new Date(checkIn);
     const endDate = new Date(checkOut);
 
-    const bookedRooms = await Room.find(
+    const bookedRooms = await Room.aggregate([
       {
-        guests: {
-          $elemMatch: {
-            from: { $lte: endDate },
-            to: { $gte: startDate }
+        $match: {
+          guests: {
+            $elemMatch: {
+              from: { $lte: endDate },
+              to: { $gte: startDate }
+            }
           }
         }
       },
       {
-        // faqat mos kelgan guests elementini qaytaradi
-        guests: {
-          $filter: {
-            input: "$guests",
-            as: "g",
-            cond: {
-              $and: [
-                { $lte: ["$$g.from", endDate] },
-                { $gte: ["$$g.to", startDate] }
-              ]
+        $project: {
+          number: 1,
+          capacity: 1,
+          guests: {
+            $filter: {
+              input: "$guests",
+              as: "g",
+              cond: {
+                $and: [
+                  { $lte: ["$$g.from", endDate] },
+                  { $gte: ["$$g.to", startDate] }
+                ]
+              }
             }
           }
         }
+      },
+      { $unwind: "$guests" }, // har bir guestni alohida qatorga ajratadi
+      {
+        $group: {
+          _id: "$guests.companyName", // kompaniya nomi bo‘yicha guruhlash
+          rooms: {
+            $push: {
+              roomNumber: "$number",
+              capacity: "$capacity",
+              from: "$guests.from",
+              to: "$guests.to"
+            }
+          }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          companyName: "$_id",
+          rooms: 1
+        }
       }
-    );
+    ]);
 
     res.json(bookedRooms);
   } catch (err) {
@@ -268,6 +294,7 @@ const getBookedRooms = async (req, res) => {
     res.status(500).json({ message: "Server xatosi" });
   }
 };
+
 
 
 
@@ -281,6 +308,7 @@ module.exports = {
   getMonthlyStats,
    getBookedRooms
 };
+
 
 
 

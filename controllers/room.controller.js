@@ -78,7 +78,7 @@ const deleteRoom = async (req, res) => {
    ========================================================= */
 const getRoomAvailability = async (req, res) => {
   try {
-    const { checkIn, checkOut } = req.body;
+    const { checkIn, checkOut } = req.query; // GET uchun query ishlatamiz
     const fromDate = new Date(checkIn);
     const toDate = new Date(checkOut);
 
@@ -266,6 +266,7 @@ module.exports = {
   getMonthlyStats,
    getBookedRooms
 };
+
 
 
 
